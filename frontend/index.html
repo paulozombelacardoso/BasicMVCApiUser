@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Usuário</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 60%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+    }
+
+    button{
+      margin-right:5px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Criar Usuário</h2>
+
+<form id="userForm">
+  <input type="text" id="name" placeholder="Nome" required><br>
+  <input type="email" id="email" placeholder="Email" required><br>
+  <button type="submit">Cadastrar</button>
+</form>
+
+<br>
+
+<input type="text" id="search" placeholder="Pesquisar por nome">
+
+<h2>Lista de Usuários</h2>
+
+<table id="userTable">
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Email</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+
+const form = document.getElementById('userForm');
+const tableBody = document.querySelector('#userTable tbody');
+const searchInput = document.getElementById('search');
+
+let editingUserId = null;
+
+// ============================
+// BUSCAR USUÁRIOS
+// ============================
+
+async function fetchUsers() {
+
+  const response = await fetch('http://localhost:3000/users');
+  const users = await response.json();
+
+  tableBody.innerHTML = '';
+
+  users.forEach(user => {
+
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>${user.name}</td>
+      <td>${user.email}</td>
+      <td>
+        <button onclick="editUser('${user.id}','${user.name}','${user.email}')">Editar</button>
+        <button onclick="deleteUser('${user.id}')">Eliminar</button>
+      </td>
+    `;
+
+    tableBody.appendChild(row);
+  });
+}
+
+fetchUsers();
+
+
+// ============================
+// CADASTRAR OU EDITAR
+// ============================
+
+form.addEventListener('submit', async (event) => {
+
+  event.preventDefault();
+
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+
+  // EDITAR
+  if(editingUserId){
+
+    await fetch(`http://localhost:3000/users/${editingUserId}`,{
+
+      method:'PUT',
+
+      headers:{
+        'Content-Type':'application/json'
+      },
+
+      body:JSON.stringify({name,email})
+    });
+
+    editingUserId = null;
+
+    alert("Usuário atualizado!");
+
+  }
+
+  // CADASTRAR
+  else{
+
+    await fetch('http://localhost:3000/users',{
+
+      method:'POST',
+
+      headers:{
+        'Content-Type':'application/json'
+      },
+
+      body:JSON.stringify({name,email})
+
+    });
+
+    alert("Usuário cadastrado!");
+
+  }
+
+  form.reset();
+
+  fetchUsers();
+
+});
+
+
+// ============================
+// EDITAR
+// ============================
+
+function editUser(id,name,email){
+
+  document.getElementById('name').value = name;
+  document.getElementById('email').value = email;
+
+  editingUserId = id;
+
+}
+
+
+// ============================
+// ELIMINAR
+// ============================
+
+async function deleteUser(id){
+
+  const confirmDelete = confirm("Deseja eliminar este usuário?");
+
+  if(confirmDelete){
+
+    await fetch(`http://localhost:3000/users/${id}`,{
+      method:'DELETE'
+    });
+
+    fetchUsers();
+
+  }
+
+}
+
+
+// ============================
+// PESQUISAR
+// ============================
+
+searchInput.addEventListener('keyup', async () => {
+
+  const search = searchInput.value.toLowerCase();
+
+  const response = await fetch('http://localhost:3000/users');
+  const users = await response.json();
+
+  tableBody.innerHTML = '';
+
+  users
+  .filter(user => user.name.toLowerCase().includes(search))
+  .forEach(user => {
+
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td>${user.name}</td>
+      <td>${user.email}</td>
+      <td>
+        <button onclick="editUser('${user.id}','${user.name}','${user.email}')">Editar</button>
+        <button onclick="deleteUser('${user.id}')">Eliminar</button>
+      </td>
+    `;
+
+    tableBody.appendChild(row);
+
+  });
+
+});
+
+</script>
+
+</body>
+</html>
