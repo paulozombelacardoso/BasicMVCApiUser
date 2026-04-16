@@ -13,15 +13,15 @@ Exemplos de lógica:
 import db from '../database/db.js'
 import User from '../model/userModel.js'
 
-function createUser(name, email)
+function createUser(name:String, email:String)
 {
     if (!name || name.trim() === "")
     {
-        throw new error("Nome e obrigatorio!");
+        throw new Error("Nome e obrigatorio!");
     }
-    if (!email || !email.trim() === "")
+    if (!email || email.trim() === "")
     {
-        throw new error("Email e obrigatorio");
+        throw new Error("Email e obrigatorio");
     }
     // verificar se o email ja existe
     // const emailExists = db.users.find(user => user.email === email);
@@ -41,22 +41,22 @@ function getUser()
     return db.users;
 }
 
-function getUserByid(id)
+function getUserByid(id:Number)
 {
     const user = db.users.find(u => u.id === id);
     if (!user)
     {
-        throw new error("User nao encontrado!");
+        throw new Error("User nao encontrado!");
     }
     return user;
 }
 
-function updateUser(id, name, email)
+function updateUser(id:Number, name:String, email:String)
 {
     const user = db.users.find(u=> u.id === id);
     if (!user)
     {
-        throw new error("user not found");
+        throw new Error("user not found");
     }
 
     if (name)
@@ -66,14 +66,14 @@ function updateUser(id, name, email)
     return user;
 }
 
-function deleteUser(id)
+function deleteUser(id:Number)
 {
     const idx = db.users.findIndex(u=> u.id === id);
     if (idx === -1)
     {
-        throw new error("user not found");
+        throw new Error("user not found");
     }
-    db.user.splice(idx, 1);
+    db.users.splice(idx, 1);
 }
 
-export default {createUser, getUser, getUserByid, updateUser}
+    export default {createUser, getUser, getUserByid, updateUser, deleteUser}
